@@ -58,6 +58,13 @@ func (v *VeritasClient) GetSingle(table string, key string, subkey string) {
 	log.Println(r.Execute())
 }
 
+// Put single
+func (v *VeritasClient) PutSingle(table string, key string, subkey string) {
+	r := v.newRequest(v, "PUT", "data")
+	r.body = "{}"
+	log.Println(r.Execute())
+}
+
 // Sign a request
 func (r *Request) signRequest() string {
 	// Sha512 hasher
