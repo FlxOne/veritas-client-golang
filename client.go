@@ -6,31 +6,48 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 )
 
 const (
 	// API version
-	API_VERSION = "v1"
+	API_VERSION  = "v1"
+	API_ENDPOINT = "http://api.flxveritas.com/"
 
 	// Regions
 	REGION_ANY = "any"
 )
 
 func NewClient(customerId int, applicationId int, secureToken string) *VeritasClient {
-	return &VeritasClient{
+	obj := &VeritasClient{
 		customerId:    customerId,
 		applicationId: applicationId,
 		secureToken:   secureToken,
-		version:       API_VERSION,
 	}
+	obj.SetVersion(API_VERSION)
+	obj.SetEndpoint(API_ENDPOINT)
+	obj.SetRegion(REGION_ANY)
+	return obj
 }
 
 func (v *VeritasClient) Select(db string) {
 	v.database = db
 }
 
+func (v *VeritasClient) SetVersion(version string) {
+	v.version = version
+}
+
+func (v *VeritasClient) SetRegion(region string) {
+	v.region = region
+}
+
+func (v *VeritasClient) SetEndpoint(endpoint string) {
+	v.endpoint = endpoint
+}
+
 func (v *VeritasClient) PrintDebug() {
-	log.Println(fmt.Sprintf("Veritas client (customer: %d) (app: %d)", v.customerId, v.applicationId))
+	log.Println(fmt.Sprintf("Veritas client (customer: %d) (app: %d) (database %s)", v.customerId, v.applicationId, v.database))
 }
 
 // Get single
@@ -73,8 +90,19 @@ func (r *Request) getUrl() string {
 
 // Execute request
 func (r *Request) Execute() (string, error) {
+	// Signature
 	signature := r.signRequest()
-	log.Println(signature)
+
+	// Request
+	fullUrl := fmt.Sprintf("%s%s", r.client.endpoint, r.getUrl())
+	log.Println(fullUrl)
+	req, reqErr := http.NewRequest(r.method, fullUrl, nil)
+	if reqErr != nil {
+		return "", reqErr
+	}
+	req.Header.Add("X-Auth", signature)
+
+	// Return
 	return "", nil
 }
 
@@ -103,6 +131,8 @@ type VeritasClient struct {
 	secureToken   string
 	version       string
 	database      string
+	endpoint      string
+	region        string
 }
 
 type RequestOpts struct {
