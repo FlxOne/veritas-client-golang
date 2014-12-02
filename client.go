@@ -14,7 +14,7 @@ import (
 const (
 	// API version
 	API_VERSION  = "v1"
-	API_ENDPOINT = "http://api.flxveritas.com/"
+	API_ENDPOINT = "http://api.flxveritas.com"
 
 	// Regions
 	REGION_ANY = "any"
@@ -87,7 +87,7 @@ func (r *Request) signRequest() string {
 
 // Get url
 func (r *Request) getUrl() string {
-	return fmt.Sprintf("%s/%s", r.client.version, r.endpoint)
+	return fmt.Sprintf("/%s/%s", r.client.version, r.endpoint)
 }
 
 // Execute request
