@@ -1,6 +1,7 @@
 package veritas
 
 import (
+	"bytes"
 	"crypto/sha1"
 	"crypto/sha512"
 	"fmt"
@@ -47,7 +48,7 @@ func (v *VeritasClient) SetEndpoint(endpoint string) {
 }
 
 func (v *VeritasClient) PrintDebug() {
-	log.Println(fmt.Sprintf("Veritas client (customer: %d) (app: %d) (database %s)", v.customerId, v.applicationId, v.database))
+	log.Println(fmt.Sprintf("Veritas client (customer: %d) (app: %d) (database: %s)", v.customerId, v.applicationId, v.database))
 }
 
 // Get single
@@ -85,22 +86,34 @@ func (r *Request) signRequest() string {
 
 // Get url
 func (r *Request) getUrl() string {
-	return fmt.Sprintf("/%s/%s", r.client.version, r.endpoint)
+	return fmt.Sprintf("%s/%s", r.client.version, r.endpoint)
 }
 
 // Execute request
 func (r *Request) Execute() (string, error) {
-	// Signature
-	signature := r.signRequest()
-
-	// Request
+	// Url
 	fullUrl := fmt.Sprintf("%s%s", r.client.endpoint, r.getUrl())
-	log.Println(fullUrl)
-	req, reqErr := http.NewRequest(r.method, fullUrl, nil)
+
+	// Body
+	var reqByteBuf *bytes.Buffer = nil
+	if len(r.body) > 0 {
+		reqByteBuf = bytes.NewBuffer([]byte(r.body))
+	}
+
+	// Create request
+	req, reqErr := http.NewRequest(r.method, fullUrl, reqByteBuf)
 	if reqErr != nil {
 		return "", reqErr
 	}
-	req.Header.Add("X-Auth", signature)
+
+	// Auth token in header
+	signature := r.signRequest()
+	req.Header.Set("X-Auth", signature)
+
+	// Content type
+	if reqByteBuf != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
 
 	// Return
 	return "", nil
