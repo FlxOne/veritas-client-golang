@@ -64,15 +64,20 @@ func (v *VeritasClient) GetSingle(table string, key string, subkey string) (inte
 func (v *VeritasClient) PutSingle(table string, key string, subkey string, value string) (interface{}, error) {
 	r := v.newRequest(v, "PUT", "data")
 
-	// Create json
+	// Create object
 	var outer map[string]interface{} = make(map[string]interface{})
 	var object map[string]interface{} = make(map[string]interface{})
+	var objects []interface{} = make([]interface{}, 1)
 	var values map[string]string = make(map[string]string)
 	values[subkey] = value
 	object["k"] = key
 	object["v"] = values
 	outer["default_db"] = v.database
 	outer["default_table"] = table
+	objects[0] = object
+	outer["objects"] = objects
+
+	// To json
 	bodyBytes, jsonErr := json.Marshal(outer)
 	if jsonErr != nil {
 		return nil, jsonErr
