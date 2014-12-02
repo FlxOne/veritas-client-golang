@@ -6,6 +6,7 @@ import (
 	"crypto/sha512"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -108,6 +109,19 @@ func (r *Request) Execute() (string, error) {
 	if len(r.body) > 0 {
 		req.Header.Set("Content-Type", "application/json")
 	}
+
+	// Execute
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	fmt.Println("response Status:", resp.Status)
+	fmt.Println("response Headers:", resp.Header)
+	body, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println("response Body:", string(body))
 
 	// Return
 	return "", nil
