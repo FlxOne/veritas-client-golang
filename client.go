@@ -110,6 +110,9 @@ func (r *Request) Execute() (string, error) {
 		req.Header.Set("Content-Type", "application/json")
 	}
 
+	// Route header
+	req.Header.Set("X-Veritas-Route", fmt.Sprintf("%s/%d/%d", r.client.region, r.client.applicationId, r.client.customerId))
+
 	// Execute
 	client := &http.Client{}
 	resp, err := client.Do(req)
