@@ -77,6 +77,7 @@ func (v *VeritasClient) PutSingle(table string, key string, subkey string, value
 	if jsonErr != nil {
 		return nil, jsonErr
 	}
+	log.Println(string(bodyBytes))
 
 	r.body = string(bodyBytes)
 	log.Println(r.Execute())
