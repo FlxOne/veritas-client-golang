@@ -60,7 +60,6 @@ func (r *Request) signRequest() string {
 	sha1H := sha1.New()
 	io.WriteString(sha1H, r.body)
 	sha1Body := fmt.Sprintf("%x", sha1H.Sum(nil))
-	log.Println(sha1Body)
 	io.WriteString(hasher, sha1Body)
 
 	// Done
