@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha1"
 	"crypto/sha512"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -53,16 +54,34 @@ func (v *VeritasClient) PrintDebug() {
 }
 
 // Get single
-func (v *VeritasClient) GetSingle(table string, key string, subkey string) {
+func (v *VeritasClient) GetSingle(table string, key string, subkey string) (interface{}, error) {
 	r := v.newRequest(v, "GET", fmt.Sprintf("data/%s/%s/%s/%s", v.database, table, key, subkey))
 	log.Println(r.Execute())
+	return nil, nil
 }
 
 // Put single
-func (v *VeritasClient) PutSingle(table string, key string, subkey string) {
+func (v *VeritasClient) PutSingle(table string, key string, subkey string, value string) (interface{}, error) {
 	r := v.newRequest(v, "PUT", "data")
-	r.body = "{}"
+
+	// Create json
+	var outer map[string]interface{} = make(map[string]interface{})
+	var object map[string]interface{} = make(map[string]interface{})
+	var values map[string]string = make(map[string]string)
+	values[subkey] = value
+	object["k"] = key
+	object["v"] = values
+	outer["default_db"] = v.database
+	outer["default_table"] = table
+	bodyBytes, jsonErr := json.Marshal(outer)
+	if jsonErr != nil {
+		return nil, jsonErr
+	}
+
+	r.body = string(bodyBytes)
 	log.Println(r.Execute())
+
+	return nil, nil
 }
 
 // Sign a request
