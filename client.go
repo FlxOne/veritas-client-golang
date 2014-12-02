@@ -94,14 +94,8 @@ func (r *Request) Execute() (string, error) {
 	// Url
 	fullUrl := fmt.Sprintf("%s%s", r.client.endpoint, r.getUrl())
 
-	// Body
-	var reqByteBuf *bytes.Buffer = nil
-	if len(r.body) > 0 {
-		reqByteBuf = bytes.NewBuffer([]byte(r.body))
-	}
-
 	// Create request
-	req, reqErr := http.NewRequest(r.method, fullUrl, reqByteBuf)
+	req, reqErr := http.NewRequest(r.method, fullUrl, bytes.NewBuffer([]byte(r.body)))
 	if reqErr != nil {
 		return "", reqErr
 	}
@@ -111,7 +105,7 @@ func (r *Request) Execute() (string, error) {
 	req.Header.Set("X-Auth", signature)
 
 	// Content type
-	if reqByteBuf != nil {
+	if len(r.body) > 0 {
 		req.Header.Set("Content-Type", "application/json")
 	}
 
