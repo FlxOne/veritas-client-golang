@@ -464,15 +464,22 @@ func (r *Response) DataMapValues() map[string]map[string]string {
 	if r.Request.responseType != RESPONSETYPE_FETCH_MULTI || r.Request.valType != VALTYPE_DATA {
 		log.Fatal("Can not get data map values from non-data response")
 	}
+	m := make(map[string]map[string]string)
 	if r.Data["data"] == nil {
-		return make(map[string]map[string]string)
+		return m
 	}
-	log.Println("typas")
-	if v, ok := r.Data["data"].(map[string]map[string]string); ok {
-		log.Println("match")
-		return v
+	if mi, ok := r.Data["data"].(map[string]interface{}); ok {
+		for k, miv := range mi {
+			if m[k] == nil {
+				m[k] = make(map[string]string)
+			}
+			miva := miv.(map[string]string)
+			for sk, sv := range miva {
+				m[k][sk] = sv
+			}
+		}
 	}
-	return make(map[string]map[string]string)
+	return m
 }
 
 func (r *Response) CountValue() int64 {
