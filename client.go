@@ -70,7 +70,7 @@ func (v *VeritasClient) PutSingle(table string, key string, subkey string, value
 	outer.DefaultTable = table
 
 	// One object
-	object := &PayloadObjectsKeyValues{}
+	object := NewPayloadObjectsKeyValues()
 	object.values[subkey] = value
 	outer.Objects = append(outer.Objects, object)
 
@@ -221,6 +221,12 @@ type PayloadObjectsKeyValues struct {
 	dbOverride    string            `json:"db_override"`
 	tableOverride string            `json:"table_override"`
 	values        map[string]string `json:"values"`
+}
+
+func NewPayloadObjectsKeyValues() *PayloadObjectsKeyValues {
+	return &PayloadObjectsKeyValues{
+		values: make(map[string]string),
+	}
 }
 
 func (o *PayloadObjectsKeyValues) GetKey() string {
