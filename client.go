@@ -514,7 +514,7 @@ func (r *Response) DataMapValues() map[string]map[string]string {
 }
 
 func (r *Response) DataCountValues() map[string]map[string]int64 {
-	if r.Request.responseType != RESPONSETYPE_FETCH_MULTI || r.Request.valType != VALTYPE_DATA {
+	if r.Request.responseType != RESPONSETYPE_FETCH_MULTI || r.Request.valType != VALTYPE_COUNT {
 		log.Fatal("Can not get data map values from non-data response")
 	}
 	m := make(map[string]map[string]int64)
