@@ -355,6 +355,13 @@ type PayloadObjectsKeyValues struct {
 	Values        map[string]interface{} `json:"v"`
 }
 
+type PayloadObjectsKeys struct {
+	Key           string   `json:"k"`
+	DbOverride    string   `json:"db_override,omitempty"`
+	TableOverride string   `json:"table_override,omitempty"`
+	Values        []string `json:"v"`
+}
+
 func NewResponse(req *Request, bodyStr string) *Response {
 	obj := &Response{
 		RawBody: bodyStr,
@@ -478,13 +485,6 @@ func (o *PayloadObjectsKeyValues) GetDbOverride() string {
 
 func (o *PayloadObjectsKeyValues) GetTableOverride() string {
 	return o.TableOverride
-}
-
-type PayloadObjectsKeys struct {
-	Key           string
-	DbOverride    string
-	TableOverride string
-	Values        []string
 }
 
 func (o *PayloadObjectsKeys) GetKey() string {
