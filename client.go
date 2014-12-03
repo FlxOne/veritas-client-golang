@@ -287,13 +287,26 @@ type Response struct {
 	ResponseType int
 	RawBody      string
 	Request      *Request
+	Error        error
 }
 
 func (r *Response) parse() {
+	// Response type
 	if r.Request.method == "GET" {
 		r.ResponseType = RESPONSETYPE_FETCH
 	} else {
 		r.ResponseType = RESPONSETYPE_MUTATION
+	}
+
+	// Json
+	var data map[string]interface{}
+	if jsonErr := json.Unmarshal([]byte(r.RawBody), &data); jsonErr != nil {
+		r.Success = false
+		r.Error = jsonErr
+		return
+	}
+	if fmt.Sprintf("%s", data["status"]) == "OK" {
+		r.Success = true
 	}
 }
 
