@@ -370,8 +370,9 @@ func (r *Response) parse() {
 	} else if r.Request.valType == VALTYPE_COUNT {
 		dataMap := data["data"].(map[string]interface{})
 		for _, v := range dataMap {
-			log.Println(fmt.Sprintf("%s", v))
-			r.IntValue, _ = strconv.ParseInt(fmt.Sprintf("%f", v), 10, 64)
+			log.Println(fmt.Sprintf("%f", v))
+			f, fe := strconv.ParseFloat(fmt.Sprintf("%f", v), 64)
+			log.Println(fmt.Sprintf("%v %v", f, fe))
 		}
 	}
 }
