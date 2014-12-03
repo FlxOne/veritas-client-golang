@@ -358,6 +358,7 @@ func (r *Response) parse() {
 	// Value extraction
 	if r.Request.responseType == RESPONSETYPE_FETCH_SINGLE {
 		if r.Request.valType == VALTYPE_DATA {
+			// One single value
 			dataMap := data["data"].(map[string]interface{})
 			for _, kv := range dataMap {
 				kvm := kv.(map[string]interface{})
@@ -367,7 +368,7 @@ func (r *Response) parse() {
 				}
 			}
 		} else if r.Request.valType == VALTYPE_COUNT {
-			log.Println(r.RawBody)
+			// One single count
 			dataMap := data["data"].(map[string]interface{})
 			for _, kv := range dataMap {
 				kvm := kv.(map[string]interface{})
