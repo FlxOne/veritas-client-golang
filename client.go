@@ -384,6 +384,8 @@ func (r *Response) parse() {
 	} else if r.Request.responseType == RESPONSETYPE_MUTATION {
 		if dataMap["acknowledged"] != nil {
 			r.Success = dataMap["acknowledged"].(bool)
+		} else if dataMap["executed"] != nil {
+			r.Success = dataMap["executed"].(bool)
 		}
 	}
 }
