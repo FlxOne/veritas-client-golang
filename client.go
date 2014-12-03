@@ -221,7 +221,7 @@ type PayloadObjectsKeyValues struct {
 	Key           string            `json:"k"`
 	DbOverride    string            `json:"db_override"`
 	TableOverride string            `json:"table_override"`
-	Values        map[string]string `json:"values"`
+	Values        map[string]string `json:"v"`
 }
 
 func NewPayloadObjectsKeyValues() *PayloadObjectsKeyValues {
