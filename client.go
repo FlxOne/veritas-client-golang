@@ -464,7 +464,10 @@ func (r *Response) DataMapValues() map[string]map[string]string {
 	if r.Request.responseType != RESPONSETYPE_FETCH_MULTI || r.Request.valType != VALTYPE_DATA {
 		log.Fatal("Can not get data map values from non-data response")
 	}
-	if v, ok := r.Data["data"].(map[string]map[string]string); ok && r.Data["data"] != nil {
+	if r.Data["data"] == nil {
+		return make(map[string]map[string]string)
+	}
+	if v, ok := r.Data["data"].(map[string]map[string]string); ok {
 		return v
 	}
 	return make(map[string]map[string]string)
