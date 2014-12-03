@@ -368,6 +368,7 @@ func (r *Response) parse() {
 			break
 		}
 	} else if r.Request.valType == VALTYPE_COUNT {
+		log.Println(r.RawBody)
 		dataMap := data["data"].(map[string]interface{})
 		for _, v := range dataMap {
 			log.Println(fmt.Sprintf("%f", v))
