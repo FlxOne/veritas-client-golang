@@ -371,7 +371,7 @@ func (r *Response) parse() {
 		dataMap := data["data"].(map[string]interface{})
 		for _, v := range dataMap {
 			log.Println(fmt.Sprintf("%s", v))
-			r.IntValue, _ = strconv.ParseInt(fmt.Sprintf("%s", v), 10, 64)
+			r.IntValue, _ = strconv.ParseInt(fmt.Sprintf("%f", v), 10, 64)
 		}
 	}
 }
