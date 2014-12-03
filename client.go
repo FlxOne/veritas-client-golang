@@ -467,7 +467,9 @@ func (r *Response) DataMapValues() map[string]map[string]string {
 	if r.Data["data"] == nil {
 		return make(map[string]map[string]string)
 	}
+	log.Println("typas")
 	if v, ok := r.Data["data"].(map[string]map[string]string); ok {
+		log.Println("match")
 		return v
 	}
 	return make(map[string]map[string]string)
