@@ -11,6 +11,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -107,9 +108,10 @@ func (v *VeritasClient) GetMulti(table string, keymap map[string][]string) (*Res
 		return nil, jsonErr
 	}
 
-	log.Println(string(jsonBytes))
+	urlData := url.QueryEscape(string(jsonBytes))
+	log.Println(urlData)
 
-	r := v.newRequest(v, "GET", fmt.Sprintf("data-multi/%s", string(jsonBytes)), VALTYPE_DATA, RESPONSETYPE_FETCH_MULTI)
+	r := v.newRequest(v, "GET", fmt.Sprintf("data-multi/%s", urlData), VALTYPE_DATA, RESPONSETYPE_FETCH_MULTI)
 	res, resErr := r.Execute()
 	return res, resErr
 }
