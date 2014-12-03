@@ -9,8 +9,10 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"strings"
+	"time"
 )
 
 const (
@@ -31,6 +33,8 @@ const (
 	RESPONSETYPE_FETCH    = 1
 	RESPONSETYPE_MUTATION = 2
 )
+
+var requestTimeout = time.Duration(10 * time.Second)
 
 func NewClient(customerId int, applicationId int, secureToken string) *VeritasClient {
 	obj := &VeritasClient{
@@ -180,6 +184,11 @@ func (r *Request) getUrl() string {
 	return fmt.Sprintf("/%s/%s", r.client.version, r.endpoint)
 }
 
+// Request timeout helper
+func dialTimeout(network, addr string) (net.Conn, error) {
+	return net.DialTimeout(network, addr, requestTimeout)
+}
+
 // Execute request
 func (r *Request) Execute() (*Response, error) {
 	// Url
@@ -203,8 +212,17 @@ func (r *Request) Execute() (*Response, error) {
 	// Route header
 	req.Header.Set("X-Veritas-Route", fmt.Sprintf("%s/%d/%d", r.client.region, r.client.applicationId, r.client.customerId))
 
+	// HTTP transport
+	transport := http.Transport{
+		Dial: dialTimeout,
+	}
+
+	// HTTP client
+	client := &http.Client{
+		Transport: &transport,
+	}
+
 	// Execute
-	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		panic(err)
