@@ -107,6 +107,8 @@ func (v *VeritasClient) GetMulti(table string, keymap map[string][]string) (*Res
 		return nil, jsonErr
 	}
 
+	log.Println(string(jsonBytes))
+
 	r := v.newRequest(v, "GET", fmt.Sprintf("data-multi/%s", string(jsonBytes)), VALTYPE_DATA, RESPONSETYPE_FETCH_MULTI)
 	res, resErr := r.Execute()
 	return res, resErr
