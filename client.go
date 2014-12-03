@@ -75,16 +75,14 @@ func (v *VeritasClient) PrintDebug() {
 }
 
 // Get single
-func (v *VeritasClient) GetSingle(table string, key string, subkey string) (interface{}, error) {
+func (v *VeritasClient) GetSingle(table string, key string, subkey string) (*Response, error) {
 	r := v.newRequest(v, "GET", fmt.Sprintf("data/%s/%s/%s/%s", v.database, table, key, subkey))
-	if v.logLevel >= LOG_TRACE {
-		log.Println(r.Execute())
-	}
-	return nil, nil
+	res, resErr := r.Execute()
+	return res, resErr
 }
 
 // Put single
-func (v *VeritasClient) PutSingle(table string, key string, subkey string, value string) (interface{}, error) {
+func (v *VeritasClient) PutSingle(table string, key string, subkey string, value string) (*Response, error) {
 	r := v.newRequest(v, "PUT", "data")
 
 	// Create object
@@ -108,20 +106,16 @@ func (v *VeritasClient) PutSingle(table string, key string, subkey string, value
 	}
 
 	r.body = string(bodyBytes)
-	if v.logLevel >= LOG_TRACE {
-		log.Println(r.Execute())
-	}
 
-	return nil, nil
+	res, resErr := r.Execute()
+	return res, resErr
 }
 
 // Get single count
-func (v *VeritasClient) GetSingleCount(table string, key string, subkey string) (interface{}, error) {
+func (v *VeritasClient) GetSingleCount(table string, key string, subkey string) (*Response, error) {
 	r := v.newRequest(v, "GET", fmt.Sprintf("count/%s/%s/%s/%s", v.database, table, key, subkey))
-	if v.logLevel >= LOG_TRACE {
-		log.Println(r.Execute())
-	}
-	return nil, nil
+	res, resErr := r.Execute()
+	return res, resErr
 }
 
 // Sign a request
