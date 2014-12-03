@@ -118,6 +118,36 @@ func (v *VeritasClient) GetSingleCount(table string, key string, subkey string) 
 	return res, resErr
 }
 
+// Increment single count
+func (v *VeritasClient) IncrementSingleCount(table string, key string, subkey string, value int) (*Response, error) {
+	r := v.newRequest(v, "PUT", "count")
+
+	// Create object
+	outer := NewRequestPayload()
+	outer.DefaultDb = v.database
+	outer.DefaultTable = table
+
+	// One object
+	object := NewPayloadObjectsKeyValues()
+	object.Key = key
+	object.Values[subkey] = value
+	outer.Objects = append(outer.Objects, object)
+
+	// To json
+	bodyBytes, jsonErr := json.Marshal(outer)
+	if jsonErr != nil {
+		return nil, jsonErr
+	}
+	if v.logLevel >= LOG_TRACE {
+		log.Println(string(bodyBytes))
+	}
+
+	r.body = string(bodyBytes)
+
+	res, resErr := r.Execute()
+	return res, resErr
+}
+
 // Sign a request
 func (r *Request) signRequest() string {
 	// Sha512 hasher
@@ -261,10 +291,10 @@ type RequestPayload struct {
 }
 
 type PayloadObjectsKeyValues struct {
-	Key           string            `json:"k"`
-	DbOverride    string            `json:"db_override,omitempty"`
-	TableOverride string            `json:"table_override,omitempty"`
-	Values        map[string]string `json:"v"`
+	Key           string                 `json:"k"`
+	DbOverride    string                 `json:"db_override,omitempty"`
+	TableOverride string                 `json:"table_override,omitempty"`
+	Values        map[string]interface{} `json:"v"`
 }
 
 func NewResponse(req *Request, bodyStr string) *Response {
@@ -306,7 +336,7 @@ func (r *Response) parse() {
 
 func NewPayloadObjectsKeyValues() *PayloadObjectsKeyValues {
 	return &PayloadObjectsKeyValues{
-		Values: make(map[string]string),
+		Values: make(map[string]interface{}),
 	}
 }
 
