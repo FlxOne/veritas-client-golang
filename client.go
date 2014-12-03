@@ -74,7 +74,7 @@ func (v *VeritasClient) PutSingle(table string, key string, subkey string, value
 	r := v.newRequest(v, "PUT", "data")
 
 	// Create object
-	outer := &RequestPayload{}
+	outer := NewRequestPayload()
 	outer.DefaultDb = v.database
 	outer.DefaultTable = table
 
@@ -251,6 +251,10 @@ func NewPayloadObjectsKeyValues() *PayloadObjectsKeyValues {
 	return &PayloadObjectsKeyValues{
 		Values: make(map[string]string),
 	}
+}
+
+func NewRequestPayload() *RequestPayload {
+	return &RequestPayload{}
 }
 
 func (o *PayloadObjectsKeyValues) GetKey() string {
