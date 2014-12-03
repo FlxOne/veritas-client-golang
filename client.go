@@ -337,7 +337,7 @@ type Response struct {
 	Request      *Request
 	Error        error
 	StrValue     string
-	IntValue     uint64
+	IntValue     int64
 }
 
 func (r *Response) parse() {
@@ -365,6 +365,13 @@ func (r *Response) parse() {
 		for _, v := range dataMap {
 			r.StrValue = fmt.Sprintf("%s", v)
 		}
+	} else if r.Request.valType == VALTYPE_COUNT {
+		dataMap := data["data"].(map[string]interface{})
+		for _, v := range dataMap {
+			if iv, ok := v.(int64); ok {
+				r.IntValue = iv
+			}
+		}
 	}
 }
 
@@ -375,7 +382,7 @@ func (r *Response) DataValue() string {
 	return r.StrValue
 }
 
-func (r *Response) CountValue() uint64 {
+func (r *Response) CountValue() int64 {
 	if r.Request.valType != VALTYPE_COUNT {
 		log.Fatal("Can not get count value from non-count response")
 	}
