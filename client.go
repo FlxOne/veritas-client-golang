@@ -71,6 +71,7 @@ func (v *VeritasClient) PutSingle(table string, key string, subkey string, value
 
 	// One object
 	object := NewPayloadObjectsKeyValues()
+	object.Key = key
 	object.Values[subkey] = value
 	outer.Objects = append(outer.Objects, object)
 
