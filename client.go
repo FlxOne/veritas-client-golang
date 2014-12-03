@@ -376,7 +376,7 @@ func (r *Response) DataValue() string {
 }
 
 func (r *Response) CountValue() uint64 {
-	if r.Request.valType != VALTYPE_DATA {
+	if r.Request.valType != VALTYPE_COUNT {
 		log.Fatal("Can not get count value from non-count response")
 	}
 	return r.IntValue
