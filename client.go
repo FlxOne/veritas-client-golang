@@ -362,7 +362,9 @@ func (r *Response) parse() {
 	// Value extraction
 	if r.Request.valType == VALTYPE_DATA {
 		dataMap := data["data"].(map[string]interface{})
-		log.Println(fmt.Sprintf("%v", dataMap))
+		for _, v := range dataMap {
+			r.StrValue = fmt.Sprintf("%s", v)
+		}
 	}
 }
 
