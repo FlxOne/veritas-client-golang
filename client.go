@@ -473,9 +473,10 @@ func (r *Response) DataMapValues() map[string]map[string]string {
 			if m[k] == nil {
 				m[k] = make(map[string]string)
 			}
-			miva := miv.(map[string]interface{})
-			for sk, sv := range miva {
-				m[k][sk] = fmt.Sprintf("%s", sv)
+			if miva, ok := miv.(map[string]interface{}); ok {
+				for sk, sv := range miva {
+					m[k][sk] = fmt.Sprintf("%s", sv)
+				}
 			}
 		}
 	}
