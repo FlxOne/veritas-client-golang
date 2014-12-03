@@ -84,14 +84,14 @@ func (v *VeritasClient) PrintDebug() {
 
 // Get single
 func (v *VeritasClient) GetSingle(table string, key string, subkey string) (*Response, error) {
-	r := v.newRequest(v, "GET", fmt.Sprintf("data/%s/%s/%s/%s", v.database, table, key, subkey))
+	r := v.newRequest(v, "GET", fmt.Sprintf("data/%s/%s/%s/%s", v.database, table, key, subkey), VALTYPE_DATA)
 	res, resErr := r.Execute()
 	return res, resErr
 }
 
 // Put single
 func (v *VeritasClient) PutSingle(table string, key string, subkey string, value string) (*Response, error) {
-	r := v.newRequest(v, "PUT", "data")
+	r := v.newRequest(v, "PUT", "data", VALTYPE_DATA)
 
 	// Create object
 	outer := NewRequestPayload()
@@ -121,14 +121,14 @@ func (v *VeritasClient) PutSingle(table string, key string, subkey string, value
 
 // Get single count
 func (v *VeritasClient) GetSingleCount(table string, key string, subkey string) (*Response, error) {
-	r := v.newRequest(v, "GET", fmt.Sprintf("count/%s/%s/%s/%s", v.database, table, key, subkey))
+	r := v.newRequest(v, "GET", fmt.Sprintf("count/%s/%s/%s/%s", v.database, table, key, subkey), VALTYPE_COUNT)
 	res, resErr := r.Execute()
 	return res, resErr
 }
 
 // Increment single count
 func (v *VeritasClient) IncrementSingleCount(table string, key string, subkey string, value int) (*Response, error) {
-	r := v.newRequest(v, "PUT", "count")
+	r := v.newRequest(v, "PUT", "count", VALTYPE_COUNT)
 
 	// Create object
 	outer := NewRequestPayload()
@@ -255,12 +255,13 @@ func (r *Request) Execute() (*Response, error) {
 }
 
 // New request
-func (v *VeritasClient) newRequest(client *VeritasClient, method string, endpoint string) *Request {
+func (v *VeritasClient) newRequest(client *VeritasClient, method string, endpoint string, valType int) *Request {
 	return &Request{
 		client:   client,
 		endpoint: endpoint,
 		method:   strings.ToUpper(method),
 		opts:     v.newRequestOpts(),
+		valType:  valType,
 	}
 }
 
@@ -296,6 +297,7 @@ type Request struct {
 	method   string
 	body     string
 	opts     *RequestOpts
+	valType  int
 }
 
 // Payloads
@@ -334,7 +336,6 @@ type Response struct {
 	RawBody      string
 	Request      *Request
 	Error        error
-	ValType      int
 	StrValue     string
 	IntValue     uint64
 }
@@ -347,13 +348,6 @@ func (r *Response) parse() {
 		r.ResponseType = RESPONSETYPE_MUTATION
 	}
 
-	// Value type
-	if strings.Contains(r.Request.endpoint, "/count") {
-		r.ValType = VALTYPE_COUNT
-	} else {
-		r.ValType = VALTYPE_DATA
-	}
-
 	// Json
 	var data map[string]interface{}
 	if jsonErr := json.Unmarshal([]byte(r.RawBody), &data); jsonErr != nil {
@@ -364,17 +358,23 @@ func (r *Response) parse() {
 	if fmt.Sprintf("%s", data["status"]) == "OK" {
 		r.Success = true
 	}
+
+	// Value extraction
+	if r.Request.valType == VALTYPE_DATA {
+		dataMap := data["data"].(map[string]interface{})
+		log.Println(fmt.Sprintf("%v", dataMap))
+	}
 }
 
 func (r *Response) DataValue() string {
-	if r.ValType != VALTYPE_DATA {
+	if r.Request.valType != VALTYPE_DATA {
 		log.Fatal("Can not get data value from non-data response")
 	}
 	return r.StrValue
 }
 
 func (r *Response) CountValue() uint64 {
-	if r.ValType != VALTYPE_DATA {
+	if r.Request.valType != VALTYPE_DATA {
 		log.Fatal("Can not get count value from non-count response")
 	}
 	return r.IntValue
