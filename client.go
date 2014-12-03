@@ -269,6 +269,9 @@ func dialTimeout(network, addr string) (net.Conn, error) {
 func (r *Request) Execute() (*Response, error) {
 	// Url
 	fullUrl := fmt.Sprintf("%s%s", r.client.endpoint, r.getUrl())
+	if r.client.logLevel >= LOG_TRACE {
+		log.Println("Requesting %s", fullUrl)
+	}
 
 	// Create request
 	req, reqErr := http.NewRequest(r.method, fullUrl, bytes.NewBuffer([]byte(r.body)))
