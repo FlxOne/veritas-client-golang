@@ -11,6 +11,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -364,13 +365,12 @@ func (r *Response) parse() {
 		dataMap := data["data"].(map[string]interface{})
 		for _, v := range dataMap {
 			r.StrValue = fmt.Sprintf("%s", v)
+			break
 		}
 	} else if r.Request.valType == VALTYPE_COUNT {
 		dataMap := data["data"].(map[string]interface{})
 		for _, v := range dataMap {
-			if iv, ok := v.(int); ok {
-				r.IntValue = int64(iv)
-			}
+			r.IntValue, _ = strconv.ParseInt(fmt.Sprintf("%s", v), 10, 64)
 		}
 	}
 }
