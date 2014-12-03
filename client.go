@@ -1,5 +1,10 @@
 package veritas
 
+// @todo Multi put data
+// @todo Multi delete data
+// @todo Multi put count
+// @todo Multi delete count
+
 import (
 	"bytes"
 	"crypto/sha1"
@@ -270,7 +275,7 @@ func (r *Request) Execute() (*Response, error) {
 	// Url
 	fullUrl := fmt.Sprintf("%s%s", r.client.endpoint, r.getUrl())
 	if r.client.logLevel >= LOG_TRACE {
-		log.Println("Requesting %s", fullUrl)
+		log.Println(fmt.Sprintf("Requesting %s", fullUrl))
 	}
 
 	// Create request
