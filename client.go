@@ -382,8 +382,9 @@ func (r *Response) parse() {
 			}
 		}
 	} else if r.Request.responseType == RESPONSETYPE_MUTATION {
-		log.Println(dataMap["acknowledged"])
-		log.Println(dataMap["executed"])
+		if dataMap["acknowledged"] != nil {
+			r.Success = dataMap["acknowledged"].(bool)
+		}
 	}
 }
 
