@@ -143,14 +143,14 @@ func (r *Request) getUrl() string {
 }
 
 // Execute request
-func (r *Request) Execute() (string, error) {
+func (r *Request) Execute() (*Response, error) {
 	// Url
 	fullUrl := fmt.Sprintf("%s%s", r.client.endpoint, r.getUrl())
 
 	// Create request
 	req, reqErr := http.NewRequest(r.method, fullUrl, bytes.NewBuffer([]byte(r.body)))
 	if reqErr != nil {
-		return "", reqErr
+		return nil, reqErr
 	}
 
 	// Auth token in header
@@ -176,7 +176,7 @@ func (r *Request) Execute() (string, error) {
 	// Read body
 	body, bodyErr := ioutil.ReadAll(resp.Body)
 	if bodyErr != nil {
-		return "", bodyErr
+		return nil, bodyErr
 	}
 	bodyStr := string(body)
 
@@ -187,8 +187,12 @@ func (r *Request) Execute() (string, error) {
 		log.Println(fmt.Sprintf("response Body: %s", bodyStr))
 	}
 
+	// Response
+	res := NewResponse()
+	res.RawBody = bodyStr
+
 	// Return
-	return bodyStr, nil
+	return res, nil
 }
 
 // New request
@@ -256,8 +260,13 @@ type PayloadObjectsKeyValues struct {
 	Values        map[string]string `json:"v"`
 }
 
+func NewResponse() *Response {
+	return &Response{}
+}
+
 type Response struct {
 	Success bool
+	RawBody string
 }
 
 func NewPayloadObjectsKeyValues() *PayloadObjectsKeyValues {
