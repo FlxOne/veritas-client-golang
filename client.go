@@ -115,6 +115,36 @@ func (v *VeritasClient) GetMulti(table string, keymap map[string][]string) (*Res
 	return res, resErr
 }
 
+// Get multi counti
+func (v *VeritasClient) GetMultiCount(table string, keymap map[string][]string) (*Response, error) {
+	// Create object
+	outer := NewRequestPayload()
+	outer.DefaultDb = v.database
+	outer.DefaultTable = table
+
+	// Objects
+	for k, v := range keymap {
+		object := NewPayloadObjectsKeys()
+		object.Key = k
+		for _, sk := range v {
+			object.Values = append(object.Values, sk)
+		}
+		outer.Objects = append(outer.Objects, object)
+	}
+
+	// To json
+	jsonBytes, jsonErr := json.Marshal(outer)
+	if jsonErr != nil {
+		return nil, jsonErr
+	}
+
+	urlData := v.encodeUri(string(jsonBytes))
+
+	r := v.newRequest(v, "GET", fmt.Sprintf("count-multi/%s", urlData), VALTYPE_COUNT, RESPONSETYPE_FETCH_MULTI)
+	res, resErr := r.Execute()
+	return res, resErr
+}
+
 // Encode uri
 func (v *VeritasClient) encodeUri(str string) string {
 	str = url.QueryEscape(str)
@@ -476,6 +506,34 @@ func (r *Response) DataMapValues() map[string]map[string]string {
 			if miva, ok := miv.(map[string]interface{}); ok {
 				for sk, sv := range miva {
 					m[k][sk] = fmt.Sprintf("%s", sv)
+				}
+			}
+		}
+	}
+	return m
+}
+
+func (r *Response) DataCountValues() map[string]map[string]int64 {
+	if r.Request.responseType != RESPONSETYPE_FETCH_MULTI || r.Request.valType != VALTYPE_DATA {
+		log.Fatal("Can not get data map values from non-data response")
+	}
+	m := make(map[string]map[string]int64)
+	if r.Data["data"] == nil {
+		return m
+	}
+	if mi, ok := r.Data["data"].(map[string]interface{}); ok {
+		for k, miv := range mi {
+			if m[k] == nil {
+				m[k] = make(map[string]int64)
+			}
+			if miva, ok := miv.(map[string]interface{}); ok {
+				for sk, sv := range miva {
+					f, fe := strconv.ParseFloat(fmt.Sprintf("%f", sv), 64)
+					if fe != nil {
+						m[k][sk] = 0
+					} else {
+						m[k][sk] = int64(f)
+					}
 				}
 			}
 		}
