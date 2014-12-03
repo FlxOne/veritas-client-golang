@@ -19,6 +19,12 @@ const (
 
 	// Regions
 	REGION_ANY = "any"
+
+	// Log levels
+	LOG_TRACE = 3
+	LOG_DEBUG = 2
+	LOG_WARN  = 1
+	LOG_ERROR = 0
 )
 
 func NewClient(customerId int, applicationId int, secureToken string) *VeritasClient {
@@ -26,6 +32,7 @@ func NewClient(customerId int, applicationId int, secureToken string) *VeritasCl
 		customerId:    customerId,
 		applicationId: applicationId,
 		secureToken:   secureToken,
+		logLevel:      LOG_WARN,
 	}
 	obj.SetVersion(API_VERSION)
 	obj.SetEndpoint(API_ENDPOINT)
@@ -56,7 +63,9 @@ func (v *VeritasClient) PrintDebug() {
 // Get single
 func (v *VeritasClient) GetSingle(table string, key string, subkey string) (interface{}, error) {
 	r := v.newRequest(v, "GET", fmt.Sprintf("data/%s/%s/%s/%s", v.database, table, key, subkey))
-	log.Println(r.Execute())
+	if v.logLevel >= LOG_TRACE {
+		log.Println(r.Execute())
+	}
 	return nil, nil
 }
 
@@ -80,11 +89,24 @@ func (v *VeritasClient) PutSingle(table string, key string, subkey string, value
 	if jsonErr != nil {
 		return nil, jsonErr
 	}
-	log.Println(string(bodyBytes))
+	if v.logLevel >= LOG_TRACE {
+		log.Println(string(bodyBytes))
+	}
 
 	r.body = string(bodyBytes)
-	log.Println(r.Execute())
+	if v.logLevel >= LOG_TRACE {
+		log.Println(r.Execute())
+	}
 
+	return nil, nil
+}
+
+// Get single count
+func (v *VeritasClient) GetSingleCount(table string, key string, subkey string) (interface{}, error) {
+	r := v.newRequest(v, "GET", fmt.Sprintf("count/%s/%s/%s/%s", v.database, table, key, subkey))
+	if v.logLevel >= LOG_TRACE {
+		log.Println(r.Execute())
+	}
 	return nil, nil
 }
 
@@ -187,6 +209,7 @@ type VeritasClient struct {
 	database      string
 	endpoint      string
 	region        string
+	logLevel      int
 }
 
 type RequestOpts struct {
