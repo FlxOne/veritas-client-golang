@@ -71,7 +71,7 @@ func (v *VeritasClient) PutSingle(table string, key string, subkey string, value
 
 	// One object
 	object := NewPayloadObjectsKeyValues()
-	object.values[subkey] = value
+	object.Values[subkey] = value
 	outer.Objects = append(outer.Objects, object)
 
 	// To json
@@ -217,53 +217,53 @@ type RequestPayload struct {
 }
 
 type PayloadObjectsKeyValues struct {
-	key           string            `json:"k"`
-	dbOverride    string            `json:"db_override"`
-	tableOverride string            `json:"table_override"`
-	values        map[string]string `json:"values"`
+	Key           string            `json:"k"`
+	DbOverride    string            `json:"db_override"`
+	TableOverride string            `json:"table_override"`
+	Values        map[string]string `json:"values"`
 }
 
 func NewPayloadObjectsKeyValues() *PayloadObjectsKeyValues {
 	return &PayloadObjectsKeyValues{
-		values: make(map[string]string),
+		Values: make(map[string]string),
 	}
 }
 
 func (o *PayloadObjectsKeyValues) GetKey() string {
-	return o.key
+	return o.Key
 }
 
 func (o *PayloadObjectsKeyValues) GetValues() interface{} {
-	return o.values
+	return o.Values
 }
 
 func (o *PayloadObjectsKeyValues) GetDbOverride() string {
-	return o.dbOverride
+	return o.DbOverride
 }
 
 func (o *PayloadObjectsKeyValues) GetTableOverride() string {
-	return o.tableOverride
+	return o.TableOverride
 }
 
 type PayloadObjectsKeys struct {
-	key           string
-	dbOverride    string
-	tableOverride string
-	values        []string
+	Key           string
+	DbOverride    string
+	TableOverride string
+	Values        []string
 }
 
 func (o *PayloadObjectsKeys) GetKey() string {
-	return o.key
+	return o.Key
 }
 
 func (o *PayloadObjectsKeys) GetValues() interface{} {
-	return o.values
+	return o.Values
 }
 
 func (o *PayloadObjectsKeys) GetDbOverride() string {
-	return o.dbOverride
+	return o.DbOverride
 }
 
 func (o *PayloadObjectsKeys) GetTableOverride() string {
-	return o.tableOverride
+	return o.TableOverride
 }
