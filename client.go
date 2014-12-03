@@ -219,8 +219,8 @@ type RequestPayload struct {
 
 type PayloadObjectsKeyValues struct {
 	Key           string            `json:"k"`
-	DbOverride    string            `json:"db_override",omitempty`
-	TableOverride string            `json:"table_override",omitempty`
+	DbOverride    string            `json:"db_override,omitempty"`
+	TableOverride string            `json:"table_override,omitempty"`
 	Values        map[string]string `json:"v"`
 }
 
