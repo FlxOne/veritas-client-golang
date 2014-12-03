@@ -31,8 +31,8 @@ const (
 	LOG_ERROR = 0
 
 	// Response type
-	RESPONSETYPE_FETCH    = 1
-	RESPONSETYPE_MUTATION = 2
+	RESPONSETYPE_FETCH_SINGLE = 1
+	RESPONSETYPE_MUTATION     = 2
 
 	// Value types
 	VALTYPE_DATA  = 1
@@ -85,14 +85,14 @@ func (v *VeritasClient) PrintDebug() {
 
 // Get single
 func (v *VeritasClient) GetSingle(table string, key string, subkey string) (*Response, error) {
-	r := v.newRequest(v, "GET", fmt.Sprintf("data/%s/%s/%s/%s", v.database, table, key, subkey), VALTYPE_DATA)
+	r := v.newRequest(v, "GET", fmt.Sprintf("data/%s/%s/%s/%s", v.database, table, key, subkey), VALTYPE_DATA, RESPONSETYPE_FETCH_SINGLE)
 	res, resErr := r.Execute()
 	return res, resErr
 }
 
 // Put single
 func (v *VeritasClient) PutSingle(table string, key string, subkey string, value string) (*Response, error) {
-	r := v.newRequest(v, "PUT", "data", VALTYPE_DATA)
+	r := v.newRequest(v, "PUT", "data", VALTYPE_DATA, RESPONSETYPE_MUTATION)
 
 	// Create object
 	outer := NewRequestPayload()
@@ -122,14 +122,14 @@ func (v *VeritasClient) PutSingle(table string, key string, subkey string, value
 
 // Get single count
 func (v *VeritasClient) GetSingleCount(table string, key string, subkey string) (*Response, error) {
-	r := v.newRequest(v, "GET", fmt.Sprintf("count/%s/%s/%s/%s", v.database, table, key, subkey), VALTYPE_COUNT)
+	r := v.newRequest(v, "GET", fmt.Sprintf("count/%s/%s/%s/%s", v.database, table, key, subkey), VALTYPE_COUNT, RESPONSETYPE_FETCH_SINGLE)
 	res, resErr := r.Execute()
 	return res, resErr
 }
 
 // Increment single count
 func (v *VeritasClient) IncrementSingleCount(table string, key string, subkey string, value int) (*Response, error) {
-	r := v.newRequest(v, "PUT", "count", VALTYPE_COUNT)
+	r := v.newRequest(v, "PUT", "count", VALTYPE_COUNT, RESPONSETYPE_MUTATION)
 
 	// Create object
 	outer := NewRequestPayload()
@@ -256,13 +256,14 @@ func (r *Request) Execute() (*Response, error) {
 }
 
 // New request
-func (v *VeritasClient) newRequest(client *VeritasClient, method string, endpoint string, valType int) *Request {
+func (v *VeritasClient) newRequest(client *VeritasClient, method string, endpoint string, valType int, respType int) *Request {
 	return &Request{
-		client:   client,
-		endpoint: endpoint,
-		method:   strings.ToUpper(method),
-		opts:     v.newRequestOpts(),
-		valType:  valType,
+		client:       client,
+		endpoint:     endpoint,
+		method:       strings.ToUpper(method),
+		opts:         v.newRequestOpts(),
+		valType:      valType,
+		responseType: respType,
 	}
 }
 
@@ -293,12 +294,13 @@ type RequestOpts struct {
 }
 
 type Request struct {
-	client   *VeritasClient
-	endpoint string
-	method   string
-	body     string
-	opts     *RequestOpts
-	valType  int
+	client       *VeritasClient
+	endpoint     string
+	method       string
+	body         string
+	opts         *RequestOpts
+	valType      int
+	responseType int
 }
 
 // Payloads
@@ -342,13 +344,6 @@ type Response struct {
 }
 
 func (r *Response) parse() {
-	// Response type
-	if r.Request.method == "GET" {
-		r.ResponseType = RESPONSETYPE_FETCH
-	} else {
-		r.ResponseType = RESPONSETYPE_MUTATION
-	}
-
 	// Json
 	var data map[string]interface{}
 	if jsonErr := json.Unmarshal([]byte(r.RawBody), &data); jsonErr != nil {
@@ -361,7 +356,7 @@ func (r *Response) parse() {
 	}
 
 	// Value extraction
-	if r.ResponseType == RESPONSETYPE_FETCH {
+	if r.Request.responseType == RESPONSETYPE_FETCH_SINGLE {
 		if r.Request.valType == VALTYPE_DATA {
 			dataMap := data["data"].(map[string]interface{})
 			for _, kv := range dataMap {
