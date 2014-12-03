@@ -32,6 +32,10 @@ const (
 	// Response type
 	RESPONSETYPE_FETCH    = 1
 	RESPONSETYPE_MUTATION = 2
+
+	// Value types
+	VALTYPE_DATA  = 1
+	VALTYPE_COUNT = 2
 )
 
 var requestTimeout = time.Duration(10 * time.Second)
@@ -330,6 +334,9 @@ type Response struct {
 	RawBody      string
 	Request      *Request
 	Error        error
+	ValType      int
+	StrValue     string
+	IntValue     uint64
 }
 
 func (r *Response) parse() {
@@ -338,6 +345,13 @@ func (r *Response) parse() {
 		r.ResponseType = RESPONSETYPE_FETCH
 	} else {
 		r.ResponseType = RESPONSETYPE_MUTATION
+	}
+
+	// Value type
+	if strings.Contains(r.Request.endpoint, "/count") {
+		r.ValType = VALTYPE_COUNT
+	} else {
+		r.ValType = VALTYPE_DATA
 	}
 
 	// Json
@@ -350,6 +364,20 @@ func (r *Response) parse() {
 	if fmt.Sprintf("%s", data["status"]) == "OK" {
 		r.Success = true
 	}
+}
+
+func (r *Response) DataValue() string {
+	if r.ValType != VALTYPE_DATA {
+		log.Fatal("Can not get data value from non-data response")
+	}
+	return r.StrValue
+}
+
+func (r *Response) CountValue() uint64 {
+	if r.ValType != VALTYPE_DATA {
+		log.Fatal("Can not get count value from non-count response")
+	}
+	return r.IntValue
 }
 
 func NewPayloadObjectsKeyValues() *PayloadObjectsKeyValues {
