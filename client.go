@@ -382,9 +382,12 @@ func (r *Response) parse() {
 			}
 		}
 	} else if r.Request.responseType == RESPONSETYPE_MUTATION {
+		// Mutation parsing for success
 		if dataMap["acknowledged"] != nil {
+			// Ack on async
 			r.Success = dataMap["acknowledged"].(bool)
 		} else if dataMap["executed"] != nil {
+			// Exec on sync
 			r.Success = dataMap["executed"].(bool)
 		}
 	}
