@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 )
 
 const (
@@ -25,6 +26,10 @@ const (
 	LOG_DEBUG = 2
 	LOG_WARN  = 1
 	LOG_ERROR = 0
+
+	// Response type
+	RESPONSETYPE_FETCH    = 1
+	RESPONSETYPE_MUTATION = 2
 )
 
 func NewClient(customerId int, applicationId int, secureToken string) *VeritasClient {
@@ -183,13 +188,12 @@ func (r *Request) Execute() (*Response, error) {
 	// Debug
 	if r.client.logLevel >= LOG_TRACE {
 		log.Println(fmt.Sprintf("Response Status: %v", resp.Status))
-		log.Println(fmt.Sprintf("response Headers: %v", resp.Header))
-		log.Println(fmt.Sprintf("response Body: %s", bodyStr))
+		log.Println(fmt.Sprintf("Response Headers: %v", resp.Header))
+		log.Println(fmt.Sprintf("Response Body: %s", bodyStr))
 	}
 
 	// Response
-	res := NewResponse()
-	res.RawBody = bodyStr
+	res := NewResponse(r, bodyStr)
 
 	// Return
 	return res, nil
@@ -200,7 +204,7 @@ func (v *VeritasClient) newRequest(client *VeritasClient, method string, endpoin
 	return &Request{
 		client:   client,
 		endpoint: endpoint,
-		method:   method,
+		method:   strings.ToUpper(method),
 		opts:     v.newRequestOpts(),
 	}
 }
@@ -260,13 +264,28 @@ type PayloadObjectsKeyValues struct {
 	Values        map[string]string `json:"v"`
 }
 
-func NewResponse() *Response {
-	return &Response{}
+func NewResponse(req *Request, bodyStr string) *Response {
+	obj := &Response{
+		RawBody: bodyStr,
+		Request: req,
+	}
+	obj.parse()
+	return obj
 }
 
 type Response struct {
-	Success bool
-	RawBody string
+	Success      bool
+	ResponseType int
+	RawBody      string
+	Request      *Request
+}
+
+func (r *Response) parse() {
+	if r.Request.method == "GET" {
+		r.ResponseType = RESPONSETYPE_FETCH
+	} else {
+		r.ResponseType = RESPONSETYPE_MUTATION
+	}
 }
 
 func NewPayloadObjectsKeyValues() *PayloadObjectsKeyValues {
