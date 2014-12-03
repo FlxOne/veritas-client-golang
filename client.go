@@ -356,10 +356,11 @@ func (r *Response) parse() {
 	}
 
 	// Value extraction
+	dataMap := data["data"].(map[string]interface{})
 	if r.Request.responseType == RESPONSETYPE_FETCH_SINGLE {
+		// Single value responses
 		if r.Request.valType == VALTYPE_DATA {
 			// One single value
-			dataMap := data["data"].(map[string]interface{})
 			for _, kv := range dataMap {
 				kvm := kv.(map[string]interface{})
 				for _, v := range kvm {
@@ -369,7 +370,6 @@ func (r *Response) parse() {
 			}
 		} else if r.Request.valType == VALTYPE_COUNT {
 			// One single count
-			dataMap := data["data"].(map[string]interface{})
 			for _, kv := range dataMap {
 				kvm := kv.(map[string]interface{})
 				for _, v := range kvm {
@@ -381,11 +381,14 @@ func (r *Response) parse() {
 				}
 			}
 		}
+	} else if r.Request.responseType == RESPONSETYPE_MUTATION {
+		log.Println(dataMap["acknowledged"])
+		log.Println(dataMap["executed"])
 	}
 }
 
 func (r *Response) DataValue() string {
-	if r.Request.valType != VALTYPE_DATA {
+	if r.Request.responseType != RESPONSETYPE_FETCH_SINGLE || r.Request.valType != VALTYPE_DATA {
 		log.Fatal("Can not get data value from non-data response")
 	}
 	return r.StrValue
