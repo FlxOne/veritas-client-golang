@@ -173,13 +173,22 @@ func (r *Request) Execute() (string, error) {
 	}
 	defer resp.Body.Close()
 
-	fmt.Println("response Status:", resp.Status)
-	fmt.Println("response Headers:", resp.Header)
-	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println("response Body:", string(body))
+	// Read body
+	body, bodyErr := ioutil.ReadAll(resp.Body)
+	if bodyErr != nil {
+		return "", bodyErr
+	}
+	bodyStr := string(body)
+
+	// Debug
+	if r.client.logLevel >= LOG_TRACE {
+		log.Println(fmt.Sprintf("Response Status: %v", resp.Status))
+		log.Println(fmt.Sprintf("response Headers: %v", resp.Header))
+		log.Println(fmt.Sprintf("response Body: %s", bodyStr))
+	}
 
 	// Return
-	return "", nil
+	return bodyStr, nil
 }
 
 // New request
@@ -245,6 +254,10 @@ type PayloadObjectsKeyValues struct {
 	DbOverride    string            `json:"db_override,omitempty"`
 	TableOverride string            `json:"table_override,omitempty"`
 	Values        map[string]string `json:"v"`
+}
+
+type Response struct {
+	Success bool
 }
 
 func NewPayloadObjectsKeyValues() *PayloadObjectsKeyValues {
