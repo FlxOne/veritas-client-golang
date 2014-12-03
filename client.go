@@ -373,6 +373,14 @@ type Response struct {
 }
 
 func (r *Response) parse() {
+	// Valid body?
+	if len(r.RawBody) < 1 {
+		if r.Request.client.logLevel >= LOG_WARN {
+			log.Println("Empty response body, unable to parse into response")
+		}
+		return
+	}
+
 	// Json
 	var data map[string]interface{}
 	if jsonErr := json.Unmarshal([]byte(r.RawBody), &data); jsonErr != nil {
