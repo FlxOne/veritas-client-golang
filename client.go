@@ -65,17 +65,14 @@ func (v *VeritasClient) PutSingle(table string, key string, subkey string, value
 	r := v.newRequest(v, "PUT", "data")
 
 	// Create object
-	var outer map[string]interface{} = make(map[string]interface{})
-	var object map[string]interface{} = make(map[string]interface{})
-	var objects []interface{} = make([]interface{}, 1)
-	var values map[string]string = make(map[string]string)
-	values[subkey] = value
-	object["k"] = key
-	object["v"] = values
-	outer["default_db"] = v.database
-	outer["default_table"] = table
-	objects[0] = object
-	outer["objects"] = objects
+	outer := &RequestPayload{}
+	outer.DefaultDb = v.database
+	outer.DefaultTable = table
+
+	// One object
+	object := &PayloadObjectsKeyValues{}
+	object.values[subkey] = value
+	outer.Objects = append(outer.Objects, object)
 
 	// To json
 	bodyBytes, jsonErr := json.Marshal(outer)
@@ -203,4 +200,64 @@ type Request struct {
 	method   string
 	body     string
 	opts     *RequestOpts
+}
+
+// Payloads
+type IPayloadObjects interface {
+	GetKey() string
+	GetDbOverride() string
+	GetTableOverride() string
+	GetValues() interface{}
+}
+
+type RequestPayload struct {
+	DefaultDb    string        `json:"default_db"`
+	DefaultTable string        `json:"default_table"`
+	Objects      []interface{} `json:"objects"`
+}
+
+type PayloadObjectsKeyValues struct {
+	key           string            `json:"k"`
+	dbOverride    string            `json:"db_override"`
+	tableOverride string            `json:"table_override"`
+	values        map[string]string `json:"values"`
+}
+
+func (o *PayloadObjectsKeyValues) GetKey() string {
+	return o.key
+}
+
+func (o *PayloadObjectsKeyValues) GetValues() interface{} {
+	return o.values
+}
+
+func (o *PayloadObjectsKeyValues) GetDbOverride() string {
+	return o.dbOverride
+}
+
+func (o *PayloadObjectsKeyValues) GetTableOverride() string {
+	return o.tableOverride
+}
+
+type PayloadObjectsKeys struct {
+	key           string
+	dbOverride    string
+	tableOverride string
+	values        []string
+}
+
+func (o *PayloadObjectsKeys) GetKey() string {
+	return o.key
+}
+
+func (o *PayloadObjectsKeys) GetValues() interface{} {
+	return o.values
+}
+
+func (o *PayloadObjectsKeys) GetDbOverride() string {
+	return o.dbOverride
+}
+
+func (o *PayloadObjectsKeys) GetTableOverride() string {
+	return o.tableOverride
 }
