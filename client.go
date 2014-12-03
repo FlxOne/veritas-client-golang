@@ -32,7 +32,8 @@ const (
 
 	// Response type
 	RESPONSETYPE_FETCH_SINGLE = 1
-	RESPONSETYPE_MUTATION     = 2
+	RESPONSETYPE_FETCH_MULTI  = 2
+	RESPONSETYPE_MUTATION     = 3
 
 	// Value types
 	VALTYPE_DATA  = 1
@@ -81,6 +82,34 @@ func (v *VeritasClient) SetLogLevel(l int) bool {
 
 func (v *VeritasClient) PrintDebug() {
 	log.Println(fmt.Sprintf("Veritas client (customer: %d) (app: %d) (database: %s)", v.customerId, v.applicationId, v.database))
+}
+
+// Get multi
+func (v *VeritasClient) GetMulti(table string, keymap map[string][]string) (*Response, error) {
+	// Create object
+	outer := NewRequestPayload()
+	outer.DefaultDb = v.database
+	outer.DefaultTable = table
+
+	// Objects
+	for k, v := range keymap {
+		object := NewPayloadObjectsKeys()
+		object.Key = k
+		for _, sk := range v {
+			object.Values = append(object.Values, sk)
+		}
+		outer.Objects = append(outer.Objects, object)
+	}
+
+	// To json
+	jsonBytes, jsonErr := json.Marshal(outer)
+	if jsonErr != nil {
+		return nil, jsonErr
+	}
+
+	r := v.newRequest(v, "GET", fmt.Sprintf("data-multi/%s", string(jsonBytes)), VALTYPE_DATA, RESPONSETYPE_FETCH_MULTI)
+	res, resErr := r.Execute()
+	return res, resErr
 }
 
 // Get single
@@ -410,6 +439,12 @@ func (r *Response) CountValue() int64 {
 func NewPayloadObjectsKeyValues() *PayloadObjectsKeyValues {
 	return &PayloadObjectsKeyValues{
 		Values: make(map[string]interface{}),
+	}
+}
+
+func NewPayloadObjectsKeys() *PayloadObjectsKeys {
+	return &PayloadObjectsKeys{
+		Values: make([]string, 0),
 	}
 }
 
