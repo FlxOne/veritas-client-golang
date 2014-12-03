@@ -389,6 +389,7 @@ type Response struct {
 	Error        error
 	StrValue     string
 	IntValue     int64
+	Data         map[string]interface{}
 }
 
 func (r *Response) parse() {
@@ -410,6 +411,7 @@ func (r *Response) parse() {
 	if fmt.Sprintf("%s", data["status"]) == "OK" {
 		r.Success = true
 	}
+	r.Data = data
 
 	// Value extraction
 	if data["data"] != nil {
@@ -456,6 +458,16 @@ func (r *Response) DataValue() string {
 		log.Fatal("Can not get data value from non-data response")
 	}
 	return r.StrValue
+}
+
+func (r *Response) DataMapValues() map[string]map[string]string {
+	if r.Request.responseType != RESPONSETYPE_FETCH_MULTI || r.Request.valType != VALTYPE_DATA {
+		log.Fatal("Can not get data map values from non-data response")
+	}
+	if v, ok := r.Data["data"].(map[string]map[string]string); ok && r.Data["data"] != nil {
+		return v
+	}
+	return make(map[string]map[string]string)
 }
 
 func (r *Response) CountValue() int64 {
