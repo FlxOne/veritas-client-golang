@@ -393,39 +393,41 @@ func (r *Response) parse() {
 	}
 
 	// Value extraction
-	dataMap := data["data"].(map[string]interface{})
-	if r.Request.responseType == RESPONSETYPE_FETCH_SINGLE {
-		// Single value responses
-		if r.Request.valType == VALTYPE_DATA {
-			// One single value
-			for _, kv := range dataMap {
-				kvm := kv.(map[string]interface{})
-				for _, v := range kvm {
-					r.StrValue = fmt.Sprintf("%s", v)
-					break
-				}
-			}
-		} else if r.Request.valType == VALTYPE_COUNT {
-			// One single count
-			for _, kv := range dataMap {
-				kvm := kv.(map[string]interface{})
-				for _, v := range kvm {
-					f, fe := strconv.ParseFloat(fmt.Sprintf("%f", v), 64)
-					if fe == nil {
-						r.IntValue = int64(f)
+	if data["data"] != nil {
+		dataMap := data["data"].(map[string]interface{})
+		if r.Request.responseType == RESPONSETYPE_FETCH_SINGLE {
+			// Single value responses
+			if r.Request.valType == VALTYPE_DATA {
+				// One single value
+				for _, kv := range dataMap {
+					kvm := kv.(map[string]interface{})
+					for _, v := range kvm {
+						r.StrValue = fmt.Sprintf("%s", v)
 						break
 					}
 				}
+			} else if r.Request.valType == VALTYPE_COUNT {
+				// One single count
+				for _, kv := range dataMap {
+					kvm := kv.(map[string]interface{})
+					for _, v := range kvm {
+						f, fe := strconv.ParseFloat(fmt.Sprintf("%f", v), 64)
+						if fe == nil {
+							r.IntValue = int64(f)
+							break
+						}
+					}
+				}
 			}
-		}
-	} else if r.Request.responseType == RESPONSETYPE_MUTATION {
-		// Mutation parsing for success
-		if dataMap["acknowledged"] != nil {
-			// Ack on async
-			r.Success = dataMap["acknowledged"].(bool)
-		} else if dataMap["executed"] != nil {
-			// Exec on sync
-			r.Success = dataMap["executed"].(bool)
+		} else if r.Request.responseType == RESPONSETYPE_MUTATION {
+			// Mutation parsing for success
+			if dataMap["acknowledged"] != nil {
+				// Ack on async
+				r.Success = dataMap["acknowledged"].(bool)
+			} else if dataMap["executed"] != nil {
+				// Exec on sync
+				r.Success = dataMap["executed"].(bool)
+			}
 		}
 	}
 }
