@@ -473,9 +473,9 @@ func (r *Response) DataMapValues() map[string]map[string]string {
 			if m[k] == nil {
 				m[k] = make(map[string]string)
 			}
-			miva := miv.(map[string]string)
+			miva := miv.(map[string]interface{})
 			for sk, sv := range miva {
-				m[k][sk] = sv
+				m[k][sk] = fmt.Sprintf("%s", sv)
 			}
 		}
 	}
