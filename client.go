@@ -361,24 +361,26 @@ func (r *Response) parse() {
 	}
 
 	// Value extraction
-	if r.Request.valType == VALTYPE_DATA {
-		dataMap := data["data"].(map[string]interface{})
-		for _, kv := range dataMap {
-			kvm := kv.(map[string]interface{})
-			for _, v := range kvm {
-				r.StrValue = fmt.Sprintf("%s", v)
-				break
+	if r.ResponseType == RESPONSETYPE_FETCH {
+		if r.Request.valType == VALTYPE_DATA {
+			dataMap := data["data"].(map[string]interface{})
+			for _, kv := range dataMap {
+				kvm := kv.(map[string]interface{})
+				for _, v := range kvm {
+					r.StrValue = fmt.Sprintf("%s", v)
+					break
+				}
 			}
-		}
-	} else if r.Request.valType == VALTYPE_COUNT {
-		log.Println(r.RawBody)
-		dataMap := data["data"].(map[string]interface{})
-		for _, kv := range dataMap {
-			kvm := kv.(map[string]interface{})
-			for _, v := range kvm {
-				f, fe := strconv.ParseFloat(fmt.Sprintf("%f", v), 64)
-				log.Println(fmt.Sprintf("%v %v", f, fe))
-				break
+		} else if r.Request.valType == VALTYPE_COUNT {
+			log.Println(r.RawBody)
+			dataMap := data["data"].(map[string]interface{})
+			for _, kv := range dataMap {
+				kvm := kv.(map[string]interface{})
+				for _, v := range kvm {
+					f, fe := strconv.ParseFloat(fmt.Sprintf("%f", v), 64)
+					log.Println(fmt.Sprintf("%v %v", f, fe))
+					break
+				}
 			}
 		}
 	}
