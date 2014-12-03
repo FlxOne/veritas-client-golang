@@ -108,12 +108,20 @@ func (v *VeritasClient) GetMulti(table string, keymap map[string][]string) (*Res
 		return nil, jsonErr
 	}
 
-	urlData := url.QueryEscape(string(jsonBytes))
-	log.Println(urlData)
+	urlData := v.encodeUri(string(jsonBytes))
 
 	r := v.newRequest(v, "GET", fmt.Sprintf("data-multi/%s", urlData), VALTYPE_DATA, RESPONSETYPE_FETCH_MULTI)
 	res, resErr := r.Execute()
 	return res, resErr
+}
+
+// Encode uri
+func (v *VeritasClient) encodeUri(str string) string {
+	str = url.QueryEscape(str)
+	// Make it RCF compliant
+	str = strings.Replace(str, "%2C", ",", -1)
+	str = strings.Replace(str, "%3A", ":", -1)
+	return str
 }
 
 // Get single
