@@ -378,8 +378,10 @@ func (r *Response) parse() {
 				kvm := kv.(map[string]interface{})
 				for _, v := range kvm {
 					f, fe := strconv.ParseFloat(fmt.Sprintf("%f", v), 64)
-					log.Println(fmt.Sprintf("%v %v", f, fe))
-					break
+					if fe == nil {
+						r.IntValue = int64(f)
+						break
+					}
 				}
 			}
 		}
