@@ -61,6 +61,15 @@ func (v *VeritasClient) SetEndpoint(endpoint string) {
 	v.endpoint = endpoint
 }
 
+func (v *VeritasClient) SetLogLevel(l int) bool {
+	if l < LOG_ERROR || l > LOG_TRACE {
+		log.Println("Invalid log level, ignoring update")
+		return false
+	}
+	v.logLevel = l
+	return true
+}
+
 func (v *VeritasClient) PrintDebug() {
 	log.Println(fmt.Sprintf("Veritas client (customer: %d) (app: %d) (database: %s)", v.customerId, v.applicationId, v.database))
 }
