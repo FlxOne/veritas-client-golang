@@ -145,7 +145,7 @@ func (v *VeritasClient) PutMulti(table string, keymap map[string]map[string]stri
 
 	urlData := v.encodeUri(string(jsonBytes))
 
-	r := v.newRequest(v, "PUT", fmt.Sprintf("data-multi", urlData), VALTYPE_DATA, RESPONSETYPE_MUTATION)
+	r := v.newRequest(v, "PUT", fmt.Sprintf("data", urlData), VALTYPE_DATA, RESPONSETYPE_MUTATION)
 	res, resErr := r.Execute()
 	return res, resErr
 }
