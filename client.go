@@ -120,6 +120,36 @@ func (v *VeritasClient) GetMulti(table string, keymap map[string][]string) (*Res
 	return res, resErr
 }
 
+// Put multi
+func (v *VeritasClient) PutMulti(table string, keymap map[string]map[string]string) (*Response, error) {
+	// Create object
+	outer := NewRequestPayload()
+	outer.DefaultDb = v.database
+	outer.DefaultTable = table
+
+	// Objects
+	for k, v := range keymap {
+		object := NewPayloadObjectsKeyValues()
+		object.Key = k
+		for sk, sv := range v {
+			object.Values[sk] = sv
+		}
+		outer.Objects = append(outer.Objects, object)
+	}
+
+	// To json
+	jsonBytes, jsonErr := json.Marshal(outer)
+	if jsonErr != nil {
+		return nil, jsonErr
+	}
+
+	urlData := v.encodeUri(string(jsonBytes))
+
+	r := v.newRequest(v, "PUT", fmt.Sprintf("data-multi", urlData), VALTYPE_DATA, RESPONSETYPE_MUTATION)
+	res, resErr := r.Execute()
+	return res, resErr
+}
+
 // Get multi counti
 func (v *VeritasClient) GetMultiCount(table string, keymap map[string][]string) (*Response, error) {
 	// Create object
