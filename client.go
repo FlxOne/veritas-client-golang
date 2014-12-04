@@ -237,6 +237,35 @@ func (v *VeritasClient) PutMultiCount(table string, keymap map[string]map[string
 	return res, resErr
 }
 
+// Delete multi counti
+func (v *VeritasClient) DeleteMultiCount(table string, keymap map[string][]string) (*Response, error) {
+	// Create object
+	outer := NewRequestPayload()
+	outer.DefaultDb = v.database
+	outer.DefaultTable = table
+
+	// Objects
+	for k, v := range keymap {
+		object := NewPayloadObjectsKeys()
+		object.Key = k
+		for _, sk := range v {
+			object.Values = append(object.Values, sk)
+		}
+		outer.Objects = append(outer.Objects, object)
+	}
+
+	// To json
+	jsonBytes, jsonErr := json.Marshal(outer)
+	if jsonErr != nil {
+		return nil, jsonErr
+	}
+
+	r := v.newRequest(v, "DELETE", "count", VALTYPE_COUNT, RESPONSETYPE_MUTATION)
+	r.body = string(jsonBytes)
+	res, resErr := r.Execute()
+	return res, resErr
+}
+
 // Encode uri
 func (v *VeritasClient) encodeUri(str string) string {
 	str = url.QueryEscape(str)
