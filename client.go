@@ -333,7 +333,7 @@ func (r *Request) Execute() (*Response, error) {
 	// Url
 	fullUrl := fmt.Sprintf("%s%s", r.client.endpoint, r.getUrl())
 	if r.client.logLevel >= LOG_TRACE {
-		log.Println(fmt.Sprintf("Requesting %s", fullUrl))
+		log.Println(fmt.Sprintf("Requesting %s %s", r.method, fullUrl))
 	}
 
 	// Create request
