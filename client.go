@@ -128,6 +128,7 @@ func (v *VeritasClient) PutMulti(table string, keymap map[string]map[string]stri
 	outer.DefaultTable = table
 
 	// Objects
+	mutationCount := 0
 	for k, v := range keymap {
 		object := NewPayloadObjectsKeyValues()
 		object.Key = k
@@ -135,6 +136,7 @@ func (v *VeritasClient) PutMulti(table string, keymap map[string]map[string]stri
 			object.Values[sk] = sv
 		}
 		outer.Objects = append(outer.Objects, object)
+		mutationCount++
 	}
 
 	// To json
@@ -145,6 +147,7 @@ func (v *VeritasClient) PutMulti(table string, keymap map[string]map[string]stri
 
 	r := v.newRequest(v, "PUT", "data", VALTYPE_DATA, RESPONSETYPE_MUTATION)
 	r.body = string(jsonBytes)
+	r.mutations = mutationCount
 	res, resErr := r.Execute()
 	return res, resErr
 }
@@ -157,6 +160,7 @@ func (v *VeritasClient) DeleteMulti(table string, keymap map[string][]string) (*
 	outer.DefaultTable = table
 
 	// Objects
+	mutationCount := 0
 	for k, v := range keymap {
 		object := NewPayloadObjectsKeys()
 		object.Key = k
@@ -164,6 +168,7 @@ func (v *VeritasClient) DeleteMulti(table string, keymap map[string][]string) (*
 			object.Values = append(object.Values, sk)
 		}
 		outer.Objects = append(outer.Objects, object)
+		mutationCount++
 	}
 
 	// To json
@@ -174,6 +179,7 @@ func (v *VeritasClient) DeleteMulti(table string, keymap map[string][]string) (*
 
 	r := v.newRequest(v, "DELETE", "data", VALTYPE_DATA, RESPONSETYPE_MUTATION)
 	r.body = string(jsonBytes)
+	r.mutations = mutationCount
 	res, resErr := r.Execute()
 	return res, resErr
 }
@@ -216,6 +222,7 @@ func (v *VeritasClient) PutMultiCount(table string, keymap map[string]map[string
 	outer.DefaultTable = table
 
 	// Objects
+	mutationCount := 0
 	for k, v := range keymap {
 		object := NewPayloadObjectsKeyValues()
 		object.Key = k
@@ -223,6 +230,7 @@ func (v *VeritasClient) PutMultiCount(table string, keymap map[string]map[string
 			object.Values[sk] = sv
 		}
 		outer.Objects = append(outer.Objects, object)
+		mutationCount++
 	}
 
 	// To json
@@ -233,6 +241,7 @@ func (v *VeritasClient) PutMultiCount(table string, keymap map[string]map[string
 
 	r := v.newRequest(v, "PUT", "count", VALTYPE_COUNT, RESPONSETYPE_MUTATION)
 	r.body = string(jsonBytes)
+	r.mutations = mutationCount
 	res, resErr := r.Execute()
 	return res, resErr
 }
@@ -245,6 +254,7 @@ func (v *VeritasClient) DeleteMultiCount(table string, keymap map[string][]strin
 	outer.DefaultTable = table
 
 	// Objects
+	mutationCount := 0
 	for k, v := range keymap {
 		object := NewPayloadObjectsKeys()
 		object.Key = k
@@ -252,6 +262,7 @@ func (v *VeritasClient) DeleteMultiCount(table string, keymap map[string][]strin
 			object.Values = append(object.Values, sk)
 		}
 		outer.Objects = append(outer.Objects, object)
+		mutationCount++
 	}
 
 	// To json
@@ -262,6 +273,7 @@ func (v *VeritasClient) DeleteMultiCount(table string, keymap map[string][]strin
 
 	r := v.newRequest(v, "DELETE", "count", VALTYPE_COUNT, RESPONSETYPE_MUTATION)
 	r.body = string(jsonBytes)
+	r.mutations = mutationCount
 	res, resErr := r.Execute()
 	return res, resErr
 }
@@ -307,7 +319,7 @@ func (v *VeritasClient) PutSingle(table string, key string, subkey string, value
 	}
 
 	r.body = string(bodyBytes)
-
+	r.mutations = 1
 	res, resErr := r.Execute()
 	return res, resErr
 }
@@ -344,7 +356,7 @@ func (v *VeritasClient) IncrementSingleCount(table string, key string, subkey st
 	}
 
 	r.body = string(bodyBytes)
-
+	r.mutations = 1
 	res, resErr := r.Execute()
 	return res, resErr
 }
@@ -496,6 +508,7 @@ type Request struct {
 	opts         *RequestOpts
 	valType      int
 	responseType int
+	mutations    int // The amount of mutations we're going to make
 }
 
 // Payloads
@@ -536,14 +549,15 @@ func NewResponse(req *Request, bodyStr string) *Response {
 }
 
 type Response struct {
-	Success      bool
-	ResponseType int
-	RawBody      string
-	Request      *Request
-	Error        error
-	StrValue     string
-	IntValue     int64
-	Data         map[string]interface{}
+	Success       bool
+	ResponseType  int
+	RawBody       string
+	Request       *Request
+	Error         error
+	StrValue      string
+	IntValue      int64
+	MutationCount int64
+	Data          map[string]interface{}
 }
 
 func (r *Response) parse() {
@@ -595,6 +609,24 @@ func (r *Response) parse() {
 				}
 			}
 		} else if r.Request.responseType == RESPONSETYPE_MUTATION {
+			// Mutation count
+			var mutationCount int64 = -1
+			if dataMap["mutations"] != nil {
+				f, fe := strconv.ParseFloat(fmt.Sprintf("%f", dataMap["mutations"]), 64)
+				if fe == nil {
+					mutationCount = int64(f)
+				}
+			}
+			r.MutationCount = mutationCount
+
+			// Does mutation count match the success?
+			if r.Success && r.MutationCount != int64(r.Request.mutations) {
+				if r.Request.client.logLevel >= LOG_WARN {
+					log.Println(fmt.Sprintf("Response mutations (%d) does not match request mutations (%d)", r.MutationCount, r.Request.mutations))
+				}
+				r.Success = false
+			}
+
 			// Mutation parsing for success
 			if dataMap["acknowledged"] != nil {
 				// Ack on async
